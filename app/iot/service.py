@@ -1,7 +1,7 @@
+import asyncio
 import random
 import string
-import asyncio
-from typing import Protocol, Awaitable, Any
+from typing import Any, Awaitable, Protocol
 
 from .message import Message, MessageType
 
@@ -19,16 +19,16 @@ async def run_parallel(*functions: Awaitable[Any]) -> None:
     await asyncio.gather(*functions)
 
 
-# Protocol is very similar to ABC, but uses duck typing
-# so devices should not inherit for it (if it walks like a duck, and quacks like a duck, it's a duck)
 class Device(Protocol):
-    def connect(
+    async def connect(self) -> None: ...
+
+    async def disconnect(self) -> None: ...
+
+    async def send_message(
         self,
-    ) -> None: ...  # Ellipsis - similar to "pass", but sometimes has different meaning
-
-    def disconnect(self) -> None: ...
-
-    def send_message(self, message_type: MessageType, data: str) -> None: ...
+        message_type: MessageType,
+        data: str = "",
+    ) -> None: ...
 
 
 class IOTService:
@@ -54,4 +54,7 @@ class IOTService:
         print("=====END OF PROGRAM======")
 
     async def send_msg(self, msg: Message) -> None:
-        await self.devices[msg.device_id].send_message(msg.msg_type, msg.data)
+        await self.devices[msg.device_id].send_message(
+            msg.msg_type,
+            msg.data,
+        )
